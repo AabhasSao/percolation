@@ -1,3 +1,3 @@
 # percolation
-percolation model
-
+### percolation model
+### 100 / 100 passes all test cases
