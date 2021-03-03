@@ -1,4 +1,3 @@
 # percolation
-percolation model
-
-## Open folder in intellij Idea
+### percolation model
+### 100 / 100 passes all test cases
