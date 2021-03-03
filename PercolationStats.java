@@ -10,10 +10,10 @@
 import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 import edu.princeton.cs.algs4.StdStats;
-import edu.princeton.cs.algs4.Stopwatch;
 
 public class PercolationStats {
-    private double[] fractions;
+    private static final double CONFIDENCE_95 = 1.96;
+    private final double[] fractions;
 
     public PercolationStats(int n, int trials) {
         if (n <= 0 || trials <= 0) {
@@ -24,8 +24,8 @@ public class PercolationStats {
         for (int i = 0; i < trials; i++) {
             Percolation pc = new Percolation(n);
             while (!pc.percolates()) {
-                int row = StdRandom.uniform(n);
-                int col = StdRandom.uniform(n);
+                int row = StdRandom.uniform(n) + 1;
+                int col = StdRandom.uniform(n) + 1;
                 pc.open(row, col);
             }
             // System.out.println("f " + pc.numberOfOpenSites() + " ");
@@ -46,20 +46,19 @@ public class PercolationStats {
 
     // low endpoint of 95% confidence interval
     public double confidenceLo() {
-        return mean() - (1.96 * stddev() / Math.sqrt(fractions.length));
+        return mean() - (CONFIDENCE_95 * stddev() / Math.sqrt(fractions.length));
     }
 
     // high endpoint of 95% confidence interval
     public double confidenceHi() {
-        return mean() + (1.96 * stddev() / Math.sqrt(fractions.length));
+        return mean() + (CONFIDENCE_95 * stddev() / Math.sqrt(fractions.length));
     }
 
     public static void main(String[] args) {
-        Stopwatch s = new Stopwatch();
         if (args.length == 2) {
             int n = Integer.parseInt(args[0]);
-            int T = Integer.parseInt(args[1]);
-            PercolationStats pc = new PercolationStats(n, T);
+            int t = Integer.parseInt(args[1]);
+            PercolationStats pc = new PercolationStats(n, t);
             StdOut.println("mean                    = " + pc.mean());
             StdOut.println("stddev                  = " + pc.stddev());
             StdOut.println(
@@ -67,6 +66,5 @@ public class PercolationStats {
                             .confidenceHi()
                             + "]");
         }
-        System.out.println("time elapsed : " + s.elapsedTime());
     }
 }

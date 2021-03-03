@@ -10,104 +10,107 @@
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
-    private boolean[][] grid;
-    private int openSites;
-    private int gridSize;
-    private int virtualTopIndex;
-    private int virtualBottomIndex;
-
+    private boolean grid[][];
+    private final int gridSize;
+    private final int verticalTop;
+    private final int vertcalBottom;
     private WeightedQuickUnionUF wuf;
+    private WeightedQuickUnionUF wufFull;
+    private int noOfOpenSites;
 
     // creates n-by-n grid, with all sites initially blocked
     public Percolation(int n) {
-        if (n <= 0) throw new IllegalArgumentException("n should be greater than 0");
-        gridSize = n;
-        int gridSquared = gridSize * gridSize;
-        grid = new boolean[gridSize][gridSize];
-        virtualTopIndex = gridSquared;
-        virtualBottomIndex = gridSquared + 1;
-        openSites = 0;
-
-        wuf = new WeightedQuickUnionUF(gridSquared + 2); //including virtual top and bottom
-        for (int i = 0; i < gridSize; i++) {
-            for (int j = 0; j < gridSize; j++) {
-                grid[i][j] = false;
-            }
+        if (n <= 0) {
+            throw new IllegalArgumentException("N > 0");
         }
+        gridSize = n;
+        grid = new boolean[n][n];
+        int gridSquared = n * n;
+        verticalTop = gridSquared;
+        vertcalBottom = gridSquared + 1;
+        noOfOpenSites = 0;
+        wuf = new WeightedQuickUnionUF(gridSquared + 2);
+        wufFull = new WeightedQuickUnionUF(gridSquared + 1);
     }
 
     // opens the site (row, col) if it is not open already
     public void open(int row, int col) {
-        validatesite(row, col);
-
-        // if site is already open return
+        validateSite(row, col);
+        int shiftRow = row - 1;
+        int shiftCol = col - 1;
+        int flatIndex = flattenGrid(row, col);
         if (isOpen(row, col)) {
             return;
         }
+        grid[shiftRow][shiftCol] = true;
+        noOfOpenSites++;
 
-        grid[row][col] = true;
-        int flatIndex = flattenGrid(row, col);
-
-        // union first row with virtual top
-        if (row == 0) {
-            wuf.union(flatIndex, virtualTopIndex);
+        // top row
+        if (row == 1) {
+            wuf.union(verticalTop, flatIndex);
+            wufFull.union(verticalTop, flatIndex);
+        }
+        // bottom row
+        if (row == gridSize) {
+            wuf.union(vertcalBottom, flatIndex);
         }
 
-        // union last row with virtual bottom
-        if (row == gridSize - 1) {
-            wuf.union(flatIndex, virtualBottomIndex);
-        }
-
-        // check if adjacent members are open and if open union them.
-        if (row != gridSize - 1 && isOpen(row + 1, col)) {
-            wuf.union(flatIndex, flattenGrid(row + 1, col));
-        }
-        if (row != 0 && isOpen(row - 1, col)) {
-            wuf.union(flatIndex, flattenGrid(row - 1, col));
-        }
-        if (col != gridSize - 1 && isOpen(row, col + 1)) {
-            wuf.union(flatIndex, flattenGrid(row, col + 1));
-        }
-        if (col != 0 && isOpen(row, col - 1)) {
+        // check left and open
+        if (isOnGrid(row, col - 1) && isOpen(row, col - 1)) {
             wuf.union(flatIndex, flattenGrid(row, col - 1));
+            wufFull.union(flatIndex, flattenGrid(row, col - 1));
         }
-
-        openSites++;
+        // check right and open
+        if (isOnGrid(row, col + 1) && isOpen(row, col + 1)) {
+            wuf.union(flatIndex, flattenGrid(row, col + 1));
+            wufFull.union(flatIndex, flattenGrid(row, col + 1));
+        }
+        // check top and open
+        if (isOnGrid(row - 1, col) && isOpen(row - 1, col)) {
+            wuf.union(flatIndex, flattenGrid(row - 1, col));
+            wufFull.union(flatIndex, flattenGrid(row - 1, col));
+        }
+        //check bottom and open
+        if (isOnGrid(row + 1, col) && isOpen(row + 1, col)) {
+            wuf.union(flatIndex, flattenGrid(row + 1, col));
+            wufFull.union(flatIndex, flattenGrid(row + 1, col));
+        }
     }
 
     // is the site (row, col) open?
     public boolean isOpen(int row, int col) {
-        validatesite(row, col);
-        return grid[row][col];
+        return grid[row - 1][col - 1];
     }
 
     // is the site (row, col) full?
     public boolean isFull(int row, int col) {
-        return wuf.connected(flattenGrid(row, col), virtualTopIndex);
+        return wufFull.find(verticalTop) == wufFull.find(flattenGrid(row, col));
     }
 
     // returns the number of open sites
     public int numberOfOpenSites() {
-        return openSites;
+        return noOfOpenSites;
     }
 
     // does the system percolate?
     public boolean percolates() {
-        return wuf.connected(virtualTopIndex, virtualBottomIndex);
+        return wuf.find(verticalTop) == wuf.find(vertcalBottom);
     }
 
-    public void validatesite(int row, int col) {
-        if (row >= gridSize || row < 0 || col >= gridSize || col < 0) {
-            throw new IllegalArgumentException("row and col should be between 0 and gridSize");
+    private void validateSite(int row, int col) {
+        if (row > gridSize || row <= 0 || col > gridSize || col <= 0) {
+            throw new IllegalArgumentException("row and col not bw 0 and gridsize + 1");
         }
     }
 
-    public int flattenGrid(int row, int col) {
-        return row * gridSize + col;
+    private int flattenGrid(int row, int col) {
+        return ((row - 1) * gridSize + col) - 1;
     }
 
-    public static void main(String[] args) {
-        Percolation p = new Percolation(5);
-        System.out.println(p.percolates());
+    private boolean isOnGrid(int row, int col) {
+        if (row <= 0 || col <= 0 || row > gridSize || col > gridSize) {
+            return false;
+        }
+        return true;
     }
 }
