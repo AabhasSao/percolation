@@ -10,12 +10,12 @@
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 public class Percolation {
-    private boolean grid[][];
+    private boolean[][] grid;
     private final int gridSize;
     private final int verticalTop;
     private final int vertcalBottom;
-    private WeightedQuickUnionUF wuf;
-    private WeightedQuickUnionUF wufFull;
+    private final WeightedQuickUnionUF wuf;
+    private final WeightedQuickUnionUF wufFull;
     private int noOfOpenSites;
 
     // creates n-by-n grid, with all sites initially blocked
@@ -70,7 +70,7 @@ public class Percolation {
             wuf.union(flatIndex, flattenGrid(row - 1, col));
             wufFull.union(flatIndex, flattenGrid(row - 1, col));
         }
-        //check bottom and open
+        // check bottom and open
         if (isOnGrid(row + 1, col) && isOpen(row + 1, col)) {
             wuf.union(flatIndex, flattenGrid(row + 1, col));
             wufFull.union(flatIndex, flattenGrid(row + 1, col));
@@ -79,11 +79,13 @@ public class Percolation {
 
     // is the site (row, col) open?
     public boolean isOpen(int row, int col) {
+        validateSite(row, col);
         return grid[row - 1][col - 1];
     }
 
     // is the site (row, col) full?
     public boolean isFull(int row, int col) {
+        validateSite(row, col);
         return wufFull.find(verticalTop) == wufFull.find(flattenGrid(row, col));
     }
 
